@@ -1,0 +1,110 @@
+classDiagram
+    class Utilisateur {
+        +int id
+        +string nom
+        +string email
+        +string motDePasse
+        +string role
+        +boolean estActif
+        +authentifier()
+        +modifierProfil()
+    }
+
+    class Signalement {
+        +int id
+        +int utilisateurId
+        +string type
+        +string description
+        +Point localisation
+        +string[] photos
+        +string statut
+        +DateTime dateCreation
+        +DateTime dateMiseAJour
+        +creerSignalement()
+        +mettreAJour()
+        +ajouterPhoto()
+    }
+
+    class AnalyseCosta {
+        +int id
+        +int signalementId
+        +float coutEstime
+        +string rapportDommages
+        +DateTime dateEvaluation
+        +string agentResponsable
+        +genererRapport()
+        +calculerCout()
+    }
+
+    class Point {
+        +float latitude
+        +float longitude
+        +genererAdresse()
+    }
+
+    class Notification {
+        +int id
+        +int signalementId
+        +string type
+        +string contenu
+        +string destinataire
+        +DateTime dateEnvoi
+        +boolean estLue
+        +envoyer()
+        +marquerCommeLue()
+    }
+
+    class Administrateur {
+        +int id
+        +attribuerPriorite()
+        +assignerTraitement()
+        +genererRapport()
+        +gererUtilisateurs()
+    }
+
+    class SimulationAccident {
+        +int id
+        +int signalementId
+        +string scenarioType
+        +float vitesse
+        +float angleImpact
+        +DateTime dateSimulation
+        +genererRapportRisque()
+        +analyserFacteursSecurite()
+    }
+
+    class Cartographie {
+        +afficherCarte()
+        +ajouterMarqueur()
+        +calculerDistance()
+        +recupererCoordonnees()
+    }
+
+    class Authentification {
+        +genererTokenJWT()
+        +validerTokenRSA()
+        +gererSession()
+    }
+
+    class Dossier {
+        +int id
+        +int signalementId
+        +string statut
+        +DateTime dateOuverture
+        +DateTime dateCloture
+        +string[] historiqueMiseAJour
+        +suivreDossier()
+        +mettreAJourStatut()
+    }
+
+    Utilisateur <|-- Administrateur : Héritage
+    Utilisateur "1" -- "*" Signalement : Crée
+    Signalement "1" -- "1" Point : Localise
+    Signalement "1" -- "*" Notification : Génère
+    Signalement "1" -- "1" AnalyseCosta : Possède
+    Signalement "1" -- "1" Dossier : A
+    Administrateur "1" -- "*" Signalement : Gère
+    Cartographie "1" -- "*" Signalement : Affiche
+    Authentification "1" -- "*" Utilisateur : Authentifie
+    SimulationAccident "1" -- "*" Signalement : Analyse
+    Administrateur "1" -- "*" AnalyseCosta : Supervise
