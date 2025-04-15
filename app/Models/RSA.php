@@ -2,32 +2,59 @@
 namespace App\Models;
 
 class RSA {
-    protected $p = 104729;
-    protected $q = 104723;
+    protected $p;
+    protected $q;
     protected $n;
     protected $f;
     protected $e;
     protected $d;
     protected $c;
-    public $m = "hello world!";
+    public $m = "";
     public $asciiString = "";
-    public $privateKeyPem;
-    public $publicKeyPem;
+    protected $privateKeyPem;
+    protected $publicKeyPem;
     
     public function __construct($message = null) {
         if ($message !== null) {
             $this->m = $message;
         }
         
+        
+        $this->loadOrGenerateKeys();
+        
+        
+        if ($message !== null) {
+            $this->convertirLesLettreEnValeurASCII();
+            $this->chiffrement();
+        }
+    }
+    
+    protected function loadOrGenerateKeys() {
+        if (file_exists(storage_path('app/rsa_keys.json'))) {
+            $keys = json_decode(file_get_contents(storage_path('app/rsa_keys.json')), true);
+            $this->p = $keys['p'];
+            $this->q = $keys['q'];
+            $this->e = $keys['e'];
+            $this->d = $keys['d'];
+        } else {
+            $this->p = 15485863;
+            $this->q = 15485867;
+            $this->generateExposantPublic();
+            $this->generateExposantPrive();
+            $keys = [
+                'p' => $this->p,
+                'q' => $this->q,
+                'e' => $this->e,
+                'd' => $this->d
+            ];
+            file_put_contents(storage_path('app/rsa_keys.json'), json_encode($keys));
+        }
+        
         $this->n = $this->p * $this->q;
         $this->f = ($this->p - 1) * ($this->q - 1);
-        $this->generateExposantPublic();
-        $this->generateExposantPrive();
-        $this->convertirLesLettreEnValeurASCII();
-        $this->chiffrement();
         
         
-        $this->setDummyKeys();
+        $this->generatePemKeys();
     }
 
     protected function pgcd($a, $b) {
@@ -40,17 +67,33 @@ class RSA {
     }
 
     protected function generateExposantPublic() {
+        $candidates = [65537, 257, 17];
+        
+        foreach ($candidates as $candidate) {
+            if ($this->pgcd($candidate, $this->f) == 1) {
+                $this->e = $candidate;
+                return;
+            }
+        }
+        $min = 3;
+        $max = $this->f - 1;
+        if($min < $max) {
         do {
-            $this->e = random_int(2, $this->f - 1);
+            $this->e = random_int($min, $max);
         } while ($this->pgcd($this->e, $this->f) != 1);
-    }
+        }else if($min == $max){
+            $this->e = $min;
+        }else{
+         $this->e = 3;
+        }}
+    
 
     protected function modInverse($a, $c) {
         $c0 = $c;
         $y = 0;
         $x = 1;
     
-        while ($a > 1) {
+        while ($a > 1 && $c > 0) {
             $q = intdiv($a, $c);
             $t = $c;
             $c = $a % $c;
@@ -71,45 +114,7 @@ class RSA {
         $this->d = $this->modInverse($this->e, $this->f);
     }
 
-    public function getPublicKey() {
-        return [$this->e, $this->n];
-    }
-
-    public function getPrivateKey() {
-        return [$this->d, $this->n];
-    }
-    
-    public function convertirLesLettreEnValeurASCII() {
-        $this->asciiString = "";
-        for ($i = 0; $i < strlen($this->m); $i++) {
-            $this->asciiString .= ord($this->m[$i]) . " ";
-        }
-    }
-    
-    public function chiffrement() {
-        $this->c = [];
-        for ($i = 0; $i < strlen($this->m); $i++) {
-            $m_ascii = ord($this->m[$i]);
-            $this->c[] = bcpowmod($m_ascii, $this->e, $this->n);
-        }
-    }
-    
-    public function deChiffrement() {
-        $message_dechiffre = "";
-        foreach ($this->c as $chiffre) {
-            $m_ascii = bcpowmod($chiffre, $this->d, $this->n);
-            $message_dechiffre .= chr($m_ascii);
-        }
-        return $message_dechiffre;
-    }
-    
-    public function getChiffrement() {
-        return implode(" ", $this->c);
-    }
-    
-    
-    protected function setDummyKeys() {
-
+    protected function generatePemKeys() {
         $this->privateKeyPem = "-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEAvipQjrkMpCc8yQVxbk5XUqxN+qELNvjJ1ISnrgpwpLfN6MlN
 aHIGvLI8+DbfMBkJuVk89h09p0Y5SxIYZzuFqaP0EHt4BouMqA7vHg94JrKLFOGr
@@ -148,6 +153,42 @@ I56t4yUmCQaG2XxzvJggfMfyLbmuzVzR4r8vok8mHzKjy3YyNPZDxfRCKeNndMSu
 HQIDAQAB
 -----END PUBLIC KEY-----";
     }
+
+    public function getPublicKey() {
+        return [$this->e, $this->n];
+    }
+
+    public function getPrivateKey() {
+        return [$this->d, $this->n];
+    }
+    
+    public function convertirLesLettreEnValeurASCII() {
+        $this->asciiString = "";
+        for ($i = 0; $i < strlen($this->m); $i++) {
+            $this->asciiString .= ord($this->m[$i]) . " ";
+        }
+    }
+    
+    public function chiffrement() {
+        $this->c = [];
+        for ($i = 0; $i < strlen($this->m); $i++) {
+            $m_ascii = ord($this->m[$i]);
+            $this->c[] = bcpowmod($m_ascii, $this->e, $this->n);
+        }
+    }
+    
+    public function deChiffrement() {
+        $message_dechiffre = "";
+        foreach ($this->c as $chiffre) {
+            $m_ascii = bcpowmod($chiffre, $this->d, $this->n);
+            $message_dechiffre .= chr($m_ascii);
+        }
+        return $message_dechiffre;
+    }
+    
+    public function getChiffrement() {
+        return implode(" ", $this->c);
+    }
     
     public function getPrivateKeyPem() {
         return $this->privateKeyPem;
@@ -156,5 +197,8 @@ HQIDAQAB
     public function getPublicKeyPem() {
         return $this->publicKeyPem;
     }
+
+    public function setC($encryptedData) {
+        $this->c = $encryptedData;
+    }
 }
-?>

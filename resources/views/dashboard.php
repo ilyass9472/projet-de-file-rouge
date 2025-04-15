@@ -1,439 +1,631 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SignalRoute - Signalement des Problèmes Routiers</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Advanced Admin Dashboard</title>
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.8.2/mapbox-gl.css" rel="stylesheet">
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.8.2/mapbox-gl.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.css"></script>
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --background-color: #f5f7fa;
         }
 
-        .map-container {
-            height: 300px;
-            width: 100%;
-            border-radius: 0.5rem;
-            overflow: hidden;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        /* Add these animation keyframes to the existing CSS */
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+
+/* Update these existing styles with animations */
+.sidebar {
+    animation: slideIn 0.5s ease-out;
+}
+
+.card {
+    animation: scaleIn 0.5s ease-out;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.menu li {
+    position: relative;
+    overflow: hidden;
+}
+
+.menu li::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--accent-color);
+    transition: width 0.3s ease;
+}
+
+.menu li:hover::after {
+    width: 100%;
+}
+
+.menu li:hover i {
+    transform: rotate(360deg);
+}
+
+.menu li i {
+    transition: transform 0.5s ease;
+}
+
+/* Add loading animation */
+.loading-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, var(--accent-color), var(--primary-color));
+    animation: loading 2s infinite;
+}
+
+@keyframes loading {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Add notification badge animation */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    padding: 4px 8px;
+    font-size: 12px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Add these new styles for enhanced animations */
+.chart-container {
+    animation: fadeIn 0.8s ease-out;
+    transition: all 0.3s ease;
+}
+
+.chart-container:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.activity-table tr {
+    animation: fadeIn 0.5s ease-out;
+    transition: all 0.3s ease;
+}
+
+.activity-table tr:hover {
+    background: #f8f9fa;
+    transform: scale(1.01);
+}
+
+.status {
+    position: relative;
+    overflow: hidden;
+}
+
+.status::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    animation: shine 2s infinite;
+}
+
+@keyframes shine {
+    to {
+        left: 100%;
+    }
+}
+
+
+        .container {
+            display: flex;
+            min-height: 100vh;
         }
 
-        .report-card {
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
             transition: all 0.3s ease;
         }
 
-        .report-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .image-preview {
-            max-height: 200px;
-            object-fit: cover;
-            border-radius: 0.5rem;
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.9);
+        .sidebar .logo {
             display: flex;
-            justify-content: center;
             align-items: center;
-            z-index: 9999;
+            font-size: 24px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--secondary-color);
         }
 
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3b82f6;
+        .sidebar .logo i {
+            margin-right: 10px;
+        }
+
+        .sidebar .menu {
+            list-style: none;
+        }
+
+        .sidebar .menu li {
+            padding: 15px 10px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            border-radius: 5px;
+        }
+
+        .sidebar .menu li i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        .sidebar .menu li:hover {
+            background: var(--secondary-color);
+        }
+
+        .sidebar .menu li.active {
+            background: var(--accent-color);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            background: var(--background-color);
+            overflow-y: auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-info img {
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            object-fit: cover;
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* Dashboard Grid */
+        .dashboard {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
         }
 
-        .slide-in {
-            animation: slideIn 0.5s ease-out;
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
         }
 
-        @keyframes slideIn {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            font-size: 24px;
+            color: var(--secondary-color);
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Table Styles */
+        .recent-activity {
+            margin: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .activity-table th,
+        .activity-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-table th {
+            background: #f8f9fa;
+            color: var(--primary-color);
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+
+        .status.completed { background: #e1f7e1; color: #2ecc71; }
+        .status.pending { background: #fff3e0; color: #f39c12; }
+        .status.cancelled { background: #ffe5e5; color: #e74c3c; }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
             }
-            to {
-                transform: translateY(0);
-                opacity: 1;
+            .sidebar .logo span,
+            .sidebar .menu span {
+                display: none;
             }
-        }
-
-        .success-animation {
-            animation: successPop 0.5s ease-out;
-        }
-
-        @keyframes successPop {
-            0% { transform: scale(0.8); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #3b82f6;
-            border-radius: 4px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #2563eb;
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-50">
-    <div id="successNotification" class="hidden fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 slide-in">
-        <div class="flex items-center space-x-2">
-            <i class="fas fa-check-circle"></i>
-            <span>Signalement envoyé avec succès!</span>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>AdminPro</span>
+            </div>
+            <ul class="menu">
+                <li class="active"><i class="fas fa-home"></i> <span>Dashboard</span></li>
+                <li><i class="fas fa-users"></i> <span>Users</span></li>
+                <li><i class="fas fa-chart-bar"></i> <span>Analytics</span></li>
+                <li><i class="fas fa-shopping-cart"></i> <span>Orders</span></li>
+                <li><i class="fas fa-box"></i> <span>Products</span></li>
+                <li><i class="fas fa-cog"></i> <span>Settings</span></li>
+            </ul>
+        </div>
+        <div class="main-content">
+            <div class="header">
+                <h2>Dashboard Overview</h2>
+                <div class="user-info">
+                    <i class="fas fa-bell"></i>
+                    <img src="https://via.placeholder.com/40" alt="Admin">
+                    <span>John Doe</span>
+                </div>
+            </div>
+            <div class="dashboard">
+                <div class="card">
+                    <h3><i class="fas fa-users"></i> Total Users</h3>
+                    <p>1,234</p>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-dollar-sign"></i> Revenue</h3>
+                    <p>$45,678</p>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-shopping-cart"></i> Orders</h3>
+                    <p>892</p>
+                </div>
+                <div class="card">
+                    <h3><i class="fas fa-box"></i> Products</h3>
+                    <p>156</p>
+                </div>
+            </div>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3>Sales Analytics</h3>
+                    <canvas id="salesChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>User Growth</h3>
+                    <canvas id="userChart"></canvas>
+                </div>
+            </div>
+            <div class="recent-activity">
+                <h3>Recent Activity</h3>
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#12345</td>
+                            <td>John Smith</td>
+                            <td>Product A</td>
+                            <td>$99.99</td>
+                            <td><span class="status completed">Completed</span></td>
+                        </tr>
+                        <tr>
+                            <td>#12346</td>
+                            <td>Jane Doe</td>
+                            <td>Product B</td>
+                            <td>$149.99</td>
+                            <td><span class="status pending">Pending</span></td>
+                        </tr>
+                        <tr>
+                            <td>#12347</td>
+                            <td>Bob Johnson</td>
+                            <td>Product C</td>
+                            <td>$199.99</td>
+                            <td><span class="status cancelled">Cancelled</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-    <nav class="bg-white shadow-lg sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2">
-                        <i class="fas fa-road text-2xl text-blue-600"></i>
-                        <span class="text-xl font-bold text-gray-800">Signal<span class="text-blue-600">Route</span></span>
-                    </div>
-                    <div class="hidden md:flex space-x-4">
-                        <a href="#" class="text-gray-600 hover:text-blue-600 transition">Accueil</a>
-                        <a href="#" class="text-gray-600 hover:text-blue-600 transition">Carte</a>
-                        <a href="#" class="text-gray-600 hover:text-blue-600 transition">Statistiques</a>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <button id="newReportBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center space-x-2">
-                        <i class="fas fa-plus"></i>
-                        <span>Nouveau Signalement</span>
-                    </button>
-                    <button class="md:hidden text-gray-600" id="mobileMenuBtn">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div id="mobileMenu" class="hidden md:hidden bg-white border-t">
-            <div class="px-2 pt-2 pb-3 space-y-1">
-                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Accueil</a>
-                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Carte</a>
-                <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50">Statistiques</a>
-            </div>
-        </div>
-    </nav>
-        <div class="max-w-7xl mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500">Total Signalements</p>
-                        <h3 class="text-2xl font-bold text-gray-800">1,234</h3>
-                    </div>
-                    <div class="bg-blue-100 p-3 rounded-full">
-                        <i class="fas fa-flag text-blue-600"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500">En cours</p>
-                        <h3 class="text-2xl font-bold text-gray-800">56</h3>
-                    </div>
-                    <div class="bg-yellow-100 p-3 rounded-full">
-                        <i class="fas fa-clock text-yellow-600"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500">Résolus</p>
-                        <h3 class="text-2xl font-bold text-gray-800">892</h3>
-                    </div>
-                    <div class="bg-green-100 p-3 rounded-full">
-                        <i class="fas fa-check text-green-600"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-500">Urgents</p>
-                        <h3 class="text-2xl font-bold text-gray-800">23</h3>
-                    </div>
-                    <div class="bg-red-100 p-3 rounded-full">
-                        <i class="fas fa-exclamation-triangle text-red-600"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-                <div class="bg-white rounded-lg shadow-md p-6 mb-8" id="reportForm">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-2xl font-bold text-gray-800">Signaler un Problème</h2>
-                        <div class="flex items-center space-x-2 text-sm text-gray-500">
-                            <i class="fas fa-clock"></i>
-                            <span id="currentDateTime"></span>
-                        </div>
-                    </div>
-        
-                    <form id="incidentReportForm" class="space-y-6">
-                        <div class="border rounded-lg p-4 bg-gray-50">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-map-marker-alt mr-2 text-blue-600"></i>Localisation
-                            </label>
-                            <div id="map" class="map-container mb-2"></div>
-                            <div class="flex items-center space-x-2 mt-2">
-                                <button type="button" id="getCurrentLocation" 
-                                        class="bg-blue-100 text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-200 transition">
-                                    <i class="fas fa-crosshairs mr-2"></i>Position actuelle
-                                </button>
-                                <input type="text" id="locationInput" placeholder="Rechercher une adresse..." 
-                                       class="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                        </div>
-        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-exclamation-circle mr-2 text-blue-600"></i>Type de Problème
-                                </label>
-                                <select id="problemType" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    <option value="">Sélectionnez le type</option>
-                                    <option value="pothole">Nid de poule</option>
-                                    <option value="signage">Signalisation endommagée</option>
-                                    <option value="lighting">Éclairage défectueux</option>
-                                    <option value="obstruction">Obstruction</option>
-                                    <option value="accident">Accident</option>
-                                    <option value="flooding">Inondation</option>
-                                    <option value="debris">Débris sur la route</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-exclamation-triangle mr-2 text-blue-600"></i>Niveau d'Urgence
-                                </label>
-                                <div class="flex space-x-4">
-                                    <label class="flex-1 relative">
-                                        <input type="radio" name="severity" value="low" class="peer hidden">
-                                        <div class="p-3 text-center border rounded-lg cursor-pointer peer-checked:bg-green-100 peer-checked:border-green-500 peer-checked:text-green-700">
-                                            <i class="fas fa-info-circle mb-1"></i>
-                                            <p>Faible</p>
-                                        </div>
-                                    </label>
-                                    <label class="flex-1 relative">
-                                        <input type="radio" name="severity" value="medium" class="peer hidden">
-                                        <div class="p-3 text-center border rounded-lg cursor-pointer peer-checked:bg-yellow-100 peer-checked:border-yellow-500 peer-checked:text-yellow-700">
-                                            <i class="fas fa-exclamation-circle mb-1"></i>
-                                            <p>Moyen</p>
-                                        </div>
-                                    </label>
-                                    <label class="flex-1 relative">
-                                        <input type="radio" name="severity" value="high" class="peer hidden">
-                                        <div class="p-3 text-center border rounded-lg cursor-pointer peer-checked:bg-red-100 peer-checked:border-red-500 peer-checked:text-red-700">
-                                            <i class="fas fa-exclamation-triangle mb-1"></i>
-                                            <p>Urgent</p>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-align-left mr-2 text-blue-600"></i>Description
-                            </label>
-                            <textarea id="description" rows="4" 
-                                      class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                      placeholder="Décrivez le problème en détail..."></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-camera mr-2 text-blue-600"></i>Photos
-                            </label>
-                            <div class="flex items-center justify-center w-full">
-                                <label class="w-full flex flex-col items-center px-4 py-6 bg-blue-50 text-blue rounded-lg tracking-wide uppercase border-2 border-dashed border-blue-400 cursor-pointer hover:bg-blue-100 transition">
-                                    <i class="fas fa-cloud-upload-alt text-blue-600 text-3xl"></i>
-                                    <span class="mt-2 text-base leading-normal text-blue-600">Ajouter des photos</span>
-                                    <input type='file' class="hidden" multiple accept="image/*" id="photoUpload">
-                                </label>
-                            </div>
-                            <div id="imagePreviewContainer" class="grid grid-cols-3 gap-4 mt-4"></div>
-                        </div>
-                        <div class="flex justify-end">
-                            <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition flex items-center space-x-2">
-                                <i class="fas fa-paper-plane"></i>
-                                <span>Envoyer le Signalement</span>
-                            </button>
-                        </div>
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-2xl font-bold text-gray-800">Signalements Récents</h2>
-                        <div class="flex space-x-2">
-                            <button class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition">
-                                <i class="fas fa-filter mr-2"></i>Filtrer
-                            </button>
-                            <button class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition">
-                                <i class="fas fa-sort mr-2"></i>Trier
-                            </button>
-                        </div>
-                    </div>
-        
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="recentReports">
-                    </div>
-                </div>
-            </div>
-        
-            <script>
-                mapboxgl.accessToken = 'YOUR_MAPBOX_TOKEN';
-                const map = new mapboxgl.Map({
-                    container: 'map',
-                    style: 'mapbox://styles/mapbox/streets-v11',
-                    center: [2.3522, 48.8566],
-                    zoom: 12
-                });
-        
-                
-                map.addControl(new mapboxgl.NavigationControl());
-                let marker = new mapboxgl.Marker();
-        
-                
-                document.getElementById('getCurrentLocation').addEventListener('click', () => {
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(position => {
-                            const { latitude, longitude } = position.coords;
-                            map.flyTo({ center: [longitude, latitude], zoom: 15 });
-                            marker.setLngLat([longitude, latitude]).addTo(map);
-                        });
-                    }
-                });
-        
-                
-                document.getElementById('photoUpload').addEventListener('change', function(e) {
-                    const container = document.getElementById('imagePreviewContainer');
-                    container.innerHTML = '';
-                    
-                    [...e.target.files].forEach(file => {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            const div = document.createElement('div');
-                            div.className = 'relative';
-                            div.innerHTML = `
-                                <img src="${e.target.result}" class="image-preview w-full h-32 object-cover rounded-lg">
-                                <button type="button" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            `;
-                            container.appendChild(div);
-                        }
-                        reader.readAsDataURL(file);
-                    });
-                });
-        
-                
-                document.getElementById('incidentReportForm').addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    
-                    document.getElementById('loadingOverlay').style.display = 'flex';
-        
-                    
-                    setTimeout(() => {
-                        document.getElementById('loadingOverlay').style.display = 'none';
-                        
-                        
-                        const notification = document.getElementById('successNotification');
-                        notification.classList.remove('hidden');
-                        notification.classList.add('success-animation');
-                        
-                        setTimeout(() => {
-                            notification.classList.add('hidden');
-                        }, 3000);
-        
-                        
-                        this.reset();
-                        document.getElementById('imagePreviewContainer').innerHTML = '';
-                    }, 2000);
-                });
-        
-                
-                function updateDateTime() {
-                    const now = new Date();
-                    document.getElementById('currentDateTime').textContent = now.toLocaleString();
-                }
-                updateDateTime();
-                setInterval(updateDateTime, 1000);
-        
-                
-                document.getElementById('mobileMenuBtn').addEventListener('click', function() {
-                    document.getElementById('mobileMenu').classList.toggle('hidden');
-                });
-        
-                
-                const reportTypes = [
-                    { type: 'Nid de poule', icon: 'road', color: 'red' },
-                    { type: 'Signalisation', icon: 'traffic-light', color: 'yellow' },
-                    { type: 'Éclairage', icon: 'lightbulb', color: 'blue' }
-                ];
-        
-                const reportsContainer = document.getElementById('recentReports');
-                
-                for (let i = 0; i < 6; i++) {
-                    const report = reportTypes[Math.floor(Math.random() * reportTypes.length)];
-                    const card = document.createElement('div');
-                    card.className = 'report-card bg-white rounded-lg shadow-md overflow-hidden';
-                    card.innerHTML = `
-                        <div class="p-4">
-                            <div class="flex items-center justify-between mb-3">
-                                <span class="bg-${report.color}-100 text-${report.color}-600 px-3 py-1 rounded-full text-sm">
-                                    ${report.type}
-                                </span>
-                                <span class="text-gray-500 text-sm">Il y a ${Math.floor(Math.random() * 24)} heures</span>
-                            </div>
-                            <h3 class="font-bold mb-2">${report.type} signalé</h3>
-                            <p class="text-gray-600 text-sm">Rue de Paris, 75001</p>
-                        </div>
-                        <div class="border-t px-4 py-3 bg-gray-50">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-500">
-                                    <i class="fas fa-comment mr-1"></i> ${Math.floor(Math.random() * 5)} commentaires
-                                </span>
-                                <button class="text-blue-600 hover:text-blue-700">
-                                    <i class="fas fa-arrow-right"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    reportsContainer.appendChild(card);
-                }
-            </script>
-        </body>
-        </html>
-        
 
+    <script>
+        // Initialize Charts
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        const userCtx = document.getElementById('userChart').getContext('2d');
+
+        // Sales Chart
+        new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [12, 19, 3, 5, 2, 3],
+                    borderColor: '#3498db',
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+
+        // User Growth Chart
+        new Chart(userCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'New Users',
+                    data: [65, 59, 80, 81, 56, 55],
+                    backgroundColor: '#2ecc71'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+
+        // Add active class to menu items
+        document.querySelectorAll('.menu li').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.menu li').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Simulate real-time updates
+        function updateRandomCard() {
+            const cards = document.querySelectorAll('.card p');
+            const randomCard = cards[Math.floor(Math.random() * cards.length)];
+            const currentValue = parseInt(randomCard.textContent.replace(/[^0-9]/g, ''));
+            const newValue = currentValue + Math.floor(Math.random() * 10) - 5;
+            randomCard.textContent = randomCard.textContent.includes('$') ? 
+                `$${newValue.toLocaleString()}` : 
+                newValue.toLocaleString();
+        }
+
+        setInterval(updateRandomCard, 3000);
+    </script>
+    <script>
+        // Add this to your existing JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate cards sequentially
+    const cards = document.querySelectorAll('.card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        setTimeout(() => {
+            card.style.animation = `scaleIn 0.5s ease-out forwards`;
+        }, index * 100);
+    });
+
+    // Animate chart containers
+    const charts = document.querySelectorAll('.chart-container');
+    charts.forEach((chart, index) => {
+        chart.style.opacity = '0';
+        setTimeout(() => {
+            chart.style.animation = `fadeIn 0.5s ease-out forwards`;
+        }, 500 + index * 200);
+    });
+
+    // Add hover effect for menu items
+    const menuItems = document.querySelectorAll('.menu li');
+    menuItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(10px)';
+        });
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateX(0)';
+        });
+    });
+
+    // Add notification animation
+    const notificationBell = document.querySelector('.fa-bell');
+    notificationBell.innerHTML += '<span class="notification-badge">3</span>';
+    notificationBell.addEventListener('click', function() {
+        this.style.animation = 'shake 0.5s ease-in-out';
+        setTimeout(() => {
+            this.style.animation = '';
+        }, 500);
+    });
+
+    // Add loading bar
+    const loadingBar = document.createElement('div');
+    loadingBar.className = 'loading-bar';
+    document.body.appendChild(loadingBar);
+
+    // Animate table rows sequentially
+    const tableRows = document.querySelectorAll('.activity-table tbody tr');
+    tableRows.forEach((row, index) => {
+        row.style.opacity = '0';
+        setTimeout(() => {
+            row.style.animation = `fadeIn 0.5s ease-out forwards`;
+        }, 1000 + index * 200);
+    });
+});
+
+// Add smooth scrolling animation
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+        });
+    });
+});
+
+// Add dynamic counter animation for cards
+function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.innerHTML = Math.floor(progress * (end - start) + start);
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
+}
+
+// Update card values with animation
+function updateCardWithAnimation(card) {
+    const currentValue = parseInt(card.textContent.replace(/[^0-9]/g, ''));
+    const newValue = currentValue + Math.floor(Math.random() * 10) - 5;
+    animateValue(card, currentValue, newValue, 1000);
+}
+
+// Replace the existing updateRandomCard function
+function updateRandomCard() {
+    const cards = document.querySelectorAll('.card p');
+    const randomCard = cards[Math.floor(Math.random() * cards.length)];
+    updateCardWithAnimation(randomCard);
+}
+
+    </script>
+</body>
+</html>
