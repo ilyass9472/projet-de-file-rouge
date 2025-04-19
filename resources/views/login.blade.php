@@ -3,6 +3,8 @@
 <head>
     <title>Modern Login & Register</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+        <input type="hidden" id="rsa-e" value="{{ $getPublicKey['e'] }}">  
+    <input type="hidden" id="rsa-n" value="{{ $getPublicKey['n'] }}">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
@@ -331,13 +333,16 @@ h2::after {
                         <button type="button" class="social-button twitter"><i class="fab fa-twitter"></i></button>
                     </div>
                     <div class="input-box">
-                        <input type="email" name="email" required>
+                        <input type="email" name="email" id="email2" required>
                         <span>Email</span>
                     </div>
                     <div class="input-box">
-                        <input type="password" name="password_encrypted" required>
+                        <input type="password" name="password" id="password2" required>
                         <span>Password</span>
                     </div>
+                    {{-- <input type="hidden" id="rsa-e" value="{{ $publicKey['e'] }}">
+                    <input type="hidden" id="rsa-n" value="{{ $publicKey['n'] }}"> --}}
+
                     <div class="remember">
                         <input type="checkbox" id="remember" name="remember">
                         <label for="remember">Remember me</label>
@@ -372,7 +377,7 @@ h2::after {
                         <span>Full Name</span>
                     </div>
                     <div class="input-box">
-                        <input type="email" name="email" required>
+                        <input type="email" name="email" id="email" required>
                         <span>Email Address</span>
                     </div>
                     <div class="input-box">
@@ -395,8 +400,7 @@ h2::after {
             </div>
         </div>
     </div>
-    <input type="hidden" id="rsa-e" value="{{ $publicKey['e'] }}">
-    <input type="hidden" id="rsa-n" value="{{ $publicKey['n'] }}">
+
 
     <script>
         function toggleForms() {
@@ -429,5 +433,16 @@ h2::after {
             return strength;
         }
     </script>
-    
-    <script src="/js/auth.js"></script>
+@vite('resources/js/auth.js')
+<script>
+    const publicKey = {
+        e: "{{ $e }}",
+        n: "{{ $n }}"
+    };
+    console.log(publicKey);
+</script>
+{{-- 
+@dd($e, $n) --}}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.0.0/jsencrypt.min.js"></script>
+   

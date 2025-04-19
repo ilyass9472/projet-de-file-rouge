@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\RSA;
+use App\Services\RSAService;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Lcobucci\JWT\Configuration;
@@ -14,50 +14,63 @@ use Illuminate\Support\Facades\Session;
 class AuthController extends Controller
 {
     protected $rsa;
-    
-    public function __construct() {
-        $this->rsa = new RSA();
-    }
-    public function showLogin()
+
+    public function __construct(RSAService $rsaService)
     {
-        list($e, $n) = $this->rsa->getPublicKey();
+        $this->rsa = $rsaService;
+    }
+    public function generateExposantPublic()
+    {
+        [$e, $n] = $this->rsa->getPublicKey();
+        return response()->json(['e' => $e, 'n' => $n]);
+    }
+
+    public function showLoginForm(RSAService $rsaService)   
+    {
+        [$e, $n] = $rsaService->getPublicKey();
         
         return view('login', [
-            'publicKey' => [
-                'e' => $e,
-                'n' => $n
-            ]
+            'e' => $e,
+            'n' => $n,
+            'getPublicKey' => ['e' => $e, 'n' => $n]
         ]);
     }
+
     public function register(Request $request)
-    {
+{
+    try {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password_encrypted' => 'required|string'
+        ]);
+        
         try {
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password_encrypted' => 'required|string'
-            ]);
             $password = $this->decryptPassword($request->password_encrypted);
-            if (strlen($password) < 8) {
-                return "<script>alert('Password must be at least 8 characters long');</script>";
-            }
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($password)
-            ]);
-            
-            $token = $this->generateJwtToken($user);
-            
-            Session::put('auth_token', $token);
-            
-            return redirect('/dashboard')->with('success', 'Registration successful!');
-            
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => $e->getMessage()]);
+            return back()->withErrors(['error' => 'Password encryption error. Please try again.']);
         }
+        
+        if (strlen($password) < 8) {
+            return back()->withErrors(['error' => 'Password must be at least 8 characters long']);
+        }
+        
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($password)
+        ]);
+        
+        $token = $this->generateJwtToken($user);
+        
+        Session::put('auth_token', $token);
+        
+        return redirect('/dashboard')->with('success', 'Registration successful!');
+        
+    } catch (\Exception $e) {
+        return back()->withErrors(['error' => $e->getMessage()]);
     }
-    
+}
     public function login(Request $request)
     {
         try {

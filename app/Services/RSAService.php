@@ -1,7 +1,7 @@
 <?php
-namespace App\Models;
+namespace App\Services;
 
-class RSA {
+class RSAService {
     protected $p;
     protected $q;
     protected $n;
@@ -36,11 +36,21 @@ class RSA {
             $this->q = $keys['q'];
             $this->e = $keys['e'];
             $this->d = $keys['d'];
+            
+            
+            $this->n = $this->p * $this->q;
+            $this->f = ($this->p - 1) * ($this->q - 1);
         } else {
             $this->p = 15485863;
             $this->q = 15485867;
+            
+            
+            $this->n = $this->p * $this->q;
+            $this->f = ($this->p - 1) * ($this->q - 1);
+            
             $this->generateExposantPublic();
             $this->generateExposantPrive();
+            
             $keys = [
                 'p' => $this->p,
                 'q' => $this->q,
@@ -49,14 +59,10 @@ class RSA {
             ];
             file_put_contents(storage_path('app/rsa_keys.json'), json_encode($keys));
         }
-        
-        $this->n = $this->p * $this->q;
-        $this->f = ($this->p - 1) * ($this->q - 1);
-        
-        
+            // dd($this->p, $this->q, $this->e, $this->d, $this->n, $this->f);
         $this->generatePemKeys();
     }
-
+  
     protected function pgcd($a, $b) {
         while ($b != 0) {
             $temp = $b;
@@ -66,55 +72,78 @@ class RSA {
         return $a;
     }
 
-    protected function generateExposantPublic() {
-        $candidates = [65537, 257, 17];
+    protected function modInverse($a, $m) {
+        $a = $a % $m;
+        if ($a < 0) {
+            $a += $m;
+        }
         
-        foreach ($candidates as $candidate) {
-            if ($this->pgcd($candidate, $this->f) == 1) {
-                $this->e = $candidate;
-                return;
-            }
+        $s = 0;
+        $old_s = 1;
+        $t = 1;
+        $old_t = 0;
+        $r = $m;
+        $old_r = $a;
+        
+        while ($r != 0) {
+            $quotient = intdiv($old_r, $r);
+            
+            $temp = $r;
+            $r = $old_r - $quotient * $r;
+            $old_r = $temp;
+            
+            $temp = $s;
+            $s = $old_s - $quotient * $s;
+            $old_s = $temp;
+            
+            $temp = $t;
+            $t = $old_t - $quotient * $t;
+            $old_t = $temp;
         }
-        $min = 3;
-        $max = $this->f - 1;
-        if($min < $max) {
-        do {
-            $this->e = random_int($min, $max);
-        } while ($this->pgcd($this->e, $this->f) != 1);
-        }else if($min == $max){
-            $this->e = $min;
-        }else{
-         $this->e = 3;
+        
+        if ($old_r != 1) {
+            throw new \Exception("Modular inverse does not exist");
         }
-        return $this->e;
+        
+        if ($old_s < 0) {
+            $old_s += $m;
+        }
+        
+        return $old_s;
     }
     
-
-    protected function modInverse($a, $c) {
-        $c0 = $c;
-        $y = 0;
-        $x = 1;
-    
-        while ($a > 1 && $c > 0) {
-            $q = intdiv($a, $c);
-            $t = $c;
-            $c = $a % $c;
-            $a = $t;
-            $t = $y;
-            $y = $x - $q * $y;
-            $x = $t;
+    protected function generateExposantPublic() {
+        $startValue = 65537;
+        echo "Starting with e = $startValue\n";
+        
+        
+        if ($this->pgcd($startValue, $this->f) == 1) {
+            echo "65537 is coprime with f(n), using it.\n";
+            $this->e = $startValue;
+            // dd($this->e);   
+            return $this->e;
         }
-    
-        if ($x < 0) {
-            $x += $c0;
+        
+        
+        echo "65537 is NOT coprime with f(n), trying alternatives.\n";
+        $candidates = [257, 17, 5, 3];
+        
+        foreach ($candidates as $candidate) {
+            echo "Testing e = $candidate\n";
+            if ($this->pgcd($candidate, $this->f) == 1) {
+                echo "Found suitable e = $candidate\n";
+                $this->e = $candidate;
+                // dd($this->e);
+                return $this->e;
+            }
         }
-    
-        return $x;
+        
+        throw new \Exception("Could not find suitable public exponent");
     }
 
     protected function generateExposantPrive() {
         $this->d = $this->modInverse($this->e, $this->f);
-        
+        // dd($this->e);
     }
 
     protected function generatePemKeys() {
@@ -158,6 +187,8 @@ HQIDAQAB
     }
 
     public function getPublicKey() {
+        $this->e = 65537;
+        // dd($this->e);
         return [$this->e, $this->n];
     }
 
