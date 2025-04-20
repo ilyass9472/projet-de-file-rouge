@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.querySelector('.signin form');
     const registerForm = document.querySelector('.signup form');
-    const eElement = document.getElementById('rsa-e');
+    const eElement = document.getElementById('rsa-e');  
     const nElement = document.getElementById('rsa-n');
 
     if (!eElement || !nElement) {

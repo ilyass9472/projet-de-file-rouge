@@ -13,13 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('Ntifications', function (Blueprint $table) {
             $table->id();
-            $table->string('nom');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
+            $table->foreignId('Signalement_id')->constrained('Signalements');
+            $table->string('type');
+            $table->text('contenu');
+            $table->string('destinataire');
+            $table->dateTime('date_envoi');
+            $table->boolean('est_lue')->default(false);
             $table->timestamps();
         });
     }
@@ -31,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        //
     }
 };

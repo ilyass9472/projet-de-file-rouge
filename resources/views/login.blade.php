@@ -373,7 +373,7 @@ h2::after {
                     @endif
                     
                     <div class="input-box">
-                        <input type="text" name="name" required>
+                        <input type="text" name="nom" required>
                         <span>Full Name</span>
                     </div>
                     <div class="input-box">
