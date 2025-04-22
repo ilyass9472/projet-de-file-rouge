@@ -13,13 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('AnalyseCosta', function (Blueprint $table) {
+        Schema::create('Ntifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('Signalement_id')->constrained('Signalements')->unique();
-            $table->float('cout_estime')->nullable();
-            $table->text('rapport_dammages')->nullable();
-            $table->dateTime('date_evaluation');
-            $table->string('agent_responsable');
+            $table->foreignId('Signalement_id')->constrained('signalement');
+            $table->string('type');
+            $table->text('contenu');
+            $table->string('destinataire');
+            $table->dateTime('date_envoi');
+            $table->boolean('est_lue')->default(false);
             $table->timestamps();
         });
     }
@@ -31,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('Ntifications');
     }
 };

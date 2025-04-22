@@ -2,7 +2,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Admin\UserController;
 Route::get('/', function () {
     return view('welcome');
 });
@@ -27,4 +27,15 @@ Route::get('/dashboard', function() {
 Route::get('/dashboard', function () {
     return view('dashboard');
 });
-?>  
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // Route pour le tableau de bord admin
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('dashboard');
+    
+    // Routes pour la gestion des utilisateurs
+    Route::resource('users', UserController::class);
+    
+    // Route pour activer/désactiver un utilisateur
+    Route::patch('users/{id}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
+});

@@ -13,8 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('administrateurs', function (Blueprint $table) {
-            $table->foreignId('id')->primary()->constrained('utilisateurs')->onDelete(action: 'cascade');
+        Schema::create('points', function (Blueprint $table) {
+            $table->id();
+            $table->float('latitude');
+            $table->float('longitude');
             $table->timestamps();
         });
     }
@@ -26,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('points');
     }
 };
