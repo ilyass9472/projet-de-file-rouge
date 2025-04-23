@@ -13,7 +13,6 @@ class AdminController extends Controller
         $stats = [
             'total_users' => User::count(),
             'total_signalements' => Signalement::count(),
-            'recent_activities' => Activity::latest()->take(5)->get(),
             'pending_signalements' => Signalement::where('status', 'pending')->count()
         ];
 
@@ -38,4 +37,4 @@ class AdminController extends Controller
         return view('admin.signalements.show', compact('signalement'));
     }
 }
-?>  
+?>

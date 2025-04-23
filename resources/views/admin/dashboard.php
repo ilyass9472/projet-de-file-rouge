@@ -376,6 +376,7 @@
             </div>
             <ul class="menu">
                 <li class="active"><i class="fas fa-home"></i> <span>Dashboard</span></li>
+                <li><i class="fas fa-users"></i> <a href="{{ route('admin.users') }}">Users</a></li>
                 <li><i class="fas fa-users"></i> <span>Users</span></li>
                 <li><i class="fas fa-chart-bar"></i> <span>Analytics</span></li>
                 <li><i class="fas fa-shopping-cart"></i> <span>Orders</span></li>

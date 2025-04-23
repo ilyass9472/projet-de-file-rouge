@@ -36,7 +36,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($utilisateurs as $user)
+                    @foreach ($users as $user)
                         <tr>
                             <td>{{ $user->id }}</td>
                             <td>{{ $user->nom }}</td>
@@ -73,7 +73,7 @@
             </table>
             
             <div class="d-flex justify-content-center mt-4">
-                {{ $utilisateurs->links() }}
+                {{ $users->links() }}
             </div>
         </div>
     </div>
@@ -93,7 +93,7 @@
             }
         });
         
-        // Initialiser les tooltips Bootstrap
+        
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
