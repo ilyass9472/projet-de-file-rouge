@@ -19,9 +19,7 @@ class RSAService {
             $this->m = $message;
         }
         
-        
         $this->loadOrGenerateKeys();
-        
         
         if ($message !== null) {
             $this->convertirLesLettreEnValeurASCII();
@@ -37,13 +35,11 @@ class RSAService {
             $this->e = $keys['e'];
             $this->d = $keys['d'];
             
-            
             $this->n = $this->p * $this->q;
             $this->f = ($this->p - 1) * ($this->q - 1);
         } else {
             $this->p = 15485863;
             $this->q = 15485867;
-            
             
             $this->n = $this->p * $this->q;
             $this->f = ($this->p - 1) * ($this->q - 1);
@@ -59,7 +55,6 @@ class RSAService {
             ];
             file_put_contents(storage_path('app/rsa_keys.json'), json_encode($keys));
         }
-            // dd($this->p, $this->q, $this->e, $this->d, $this->n, $this->f);
         $this->generatePemKeys();
     }
   
@@ -116,14 +111,11 @@ class RSAService {
         $startValue = 65537;
         echo "Starting with e = $startValue\n";
         
-        
         if ($this->pgcd($startValue, $this->f) == 1) {
             echo "65537 is coprime with f(n), using it.\n";
             $this->e = $startValue;
-            // dd($this->e);   
             return $this->e;
         }
-        
         
         echo "65537 is NOT coprime with f(n), trying alternatives.\n";
         $candidates = [257, 17, 5, 3];
@@ -133,7 +125,6 @@ class RSAService {
             if ($this->pgcd($candidate, $this->f) == 1) {
                 echo "Found suitable e = $candidate\n";
                 $this->e = $candidate;
-                // dd($this->e);
                 return $this->e;
             }
         }
@@ -143,7 +134,6 @@ class RSAService {
 
     protected function generateExposantPrive() {
         $this->d = $this->modInverse($this->e, $this->f);
-        // dd($this->e);
     }
 
     protected function generatePemKeys() {
@@ -188,7 +178,6 @@ HQIDAQAB
 
     public function getPublicKey() {
         $this->e = 65537;
-        // dd($this->e);
         return [$this->e, $this->n];
     }
 
