@@ -109,21 +109,16 @@ class RSAService {
     
     protected function generateExposantPublic() {
         $startValue = 65537;
-        echo "Starting with e = $startValue\n";
         
         if ($this->pgcd($startValue, $this->f) == 1) {
-            echo "65537 is coprime with f(n), using it.\n";
             $this->e = $startValue;
             return $this->e;
         }
         
-        echo "65537 is NOT coprime with f(n), trying alternatives.\n";
         $candidates = [257, 17, 5, 3];
         
         foreach ($candidates as $candidate) {
-            echo "Testing e = $candidate\n";
             if ($this->pgcd($candidate, $this->f) == 1) {
-                echo "Found suitable e = $candidate\n";
                 $this->e = $candidate;
                 return $this->e;
             }
