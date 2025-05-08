@@ -2,7 +2,9 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\SignalementController;
+use App\Http\Controllers\Admin\AdminController;
 Route::get('/', function () {
     return view('welcome');
 });
@@ -20,11 +22,23 @@ Route::get('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->n
 Route::get('/dashboard', function() {
     return view('dashboard');
 })->middleware('auth');
-// Route::get('/home', function () {
-//     return view('home');
-// })->middleware('auth');
-// Route::get('/aaa    ',[AuthController::class,'generateExposantPublic']);
 Route::get('/dashboard', function () {
     return view('dashboard');
 });
-?>  
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', function () {
+        return view('admin.dashboard');
+    })->name('dashboard');
+    
+    Route::resource('users', UserController::class);
+    
+    Route::patch('users/{id}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
+    Route::get('/users', [App\Http\Controllers\Admin\AdminController::class, 'users'])->name('users');
+});
+Route::resource('signalements', SignalementController::class);
+
+Route::fallback(function () {
+    return view('errors.404');
+});
+
+Route::get('/users', [App\Http\Controllers\Admin\AdminController::class, 'users'])->name('users');

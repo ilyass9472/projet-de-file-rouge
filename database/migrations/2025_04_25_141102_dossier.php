@@ -13,14 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('Ntifications', function (Blueprint $table) {
+        Schema::create('dossier', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('Signalement_id')->constrained('Signalements');
-            $table->string('type');
-            $table->text('contenu');
-            $table->string('destinataire');
-            $table->dateTime('date_envoi');
-            $table->boolean('est_lue')->default(false);
+            $table->foreignId('signalement_id')->constrained('signalement')->unique();
+            $table->string('statut')->default('ouvert');
+            $table->dateTime('date_ouverture');
+            $table->dateTime('date_cloture')->nullable();
             $table->timestamps();
         });
     }
@@ -32,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('dossier');
     }
 };

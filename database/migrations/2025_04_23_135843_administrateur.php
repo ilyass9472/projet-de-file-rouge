@@ -13,16 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('signalement', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('User_id')->constrained('Users');
-            $table->foreignId('point_id')->constrained('points');
-            $table->string('type');
-            $table->text('description');
-            $table->string('statut')->default('nouveau');
+        Schema::create('administrateur', function (Blueprint $table) {
+            $table->foreignId('id')->primary()->constrained('users')->onDelete(action: 'cascade');
             $table->timestamps();
         });
-
     }
 
     /**
@@ -32,6 +26,6 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('administrateur');
     }
 };
